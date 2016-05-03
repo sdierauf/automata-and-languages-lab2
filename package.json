@@ -1,0 +1,24 @@
+{
+  "name": "automata-and-languages-lab2",
+  "version": "1.0.0",
+  "description": "code for automata and languages lab 2 https://www.kth.se/social/files/5720a235f2765457aef50928/task.pdf",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdierauf/automata-and-languages-lab2.git"
+  },
+  "author": "Stefan Dierauf",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sdierauf/automata-and-languages-lab2/issues"
+  },
+  "homepage": "https://github.com/sdierauf/automata-and-languages-lab2#readme",
+  "dependencies": {
+    "graphlib": "^2.1.0",
+    "prompt": "^1.0.0",
+    "prompt-sync": "^4.0.4"
+  }
+}
