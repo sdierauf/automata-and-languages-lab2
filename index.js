@@ -21,7 +21,9 @@ var specContent = fs.readFileSync(specFile, 'ascii');
 console.log(cfgContent);
 console.log(specContent);
 
-// parse CFG graph
+
+// 1. Process an input file describing the flow graph FG, and store it in some
+// suitable data structure.
 var cfg = new Graph({multigraph: true});
 cfgContent.split('\n').forEach(function(line) {
 	if (line.length == 0) { return }
@@ -37,14 +39,15 @@ cfgContent.split('\n').forEach(function(line) {
 		var node = parts[1];
 		var dest = parts[2];
 		var label = parts[3];
-		cfg.setEdge(node, dest, label)
+		cfg.setEdge(node, dest, label, label);
 	} else {
 		console.log('what is this line: ' + line);
 	}
 });
 
 
-// parse Spec graph
+// 2. Process an input file with the specification DFA, and store it in some
+// suitable data structure.
 var spec = new Graph({multigraph: true});
 specContent.split('\n').forEach(function(line) {
 	if (line.length == 0) { return }
@@ -69,10 +72,31 @@ specContent.split('\n').forEach(function(line) {
 	}
 	dest = {name: parts[2].match(/[a-zA-Z0-9]+/g)[0], terminal: destIsFinal}
 	spec.setNode(dest.name, dest);
-	spec.setEdge(node.name, dest.name, edge);
+	spec.setEdge(node.name, dest.name, edge, edge);
 });
 
-// fold??
+// 3. Compute the complement of the DFA (see page 135 of the course book).
+var complementSpec = new Graph({multigraph: true});
+cfg.nodes().forEach(function(node) {
+	console.log(cfg.node(node))
+});
+console.log(spec.nodes())
+
+spec.nodes().forEach(function(node) {
+	complementSpec.setNode(node, spec.node(node));
+});
+
+spec.edges().forEach(function(edge) {
+	console.log(edge);
+	var dest = edge.v;
+	var src = edge.w;
+	complementSpec.setEdge(src, dest, spec.edge(edge), spec.edge(edge));
+});
+
+
+// 4. Compute the product of FG and the complement DFA, resulting in a
+// context-free grammar Gprod.
+// 5. Test Gprod for lang
 
 
 
