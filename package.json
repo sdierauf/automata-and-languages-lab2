@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/sdierauf/automata-and-languages-lab2#readme",
   "dependencies": {
+    "grammar-graph": "^3.1.1",
     "graphlib": "^2.1.0",
     "prompt": "^1.0.0",
     "prompt-sync": "^4.0.4"
