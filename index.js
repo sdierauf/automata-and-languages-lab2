@@ -133,6 +133,27 @@ console.log(Gprod);
 // −→ vj of F and every state sequence qaqb ∈
 // Q2
 // , a production [qa vi qb] → [qa vj qb].
+complementSpec.nodes().forEach(function (node) {
+	var out = complementSpec.outEdges(node);
+	// for each pair in out
+	console.log(out)
+	out.forEach(function (edge) {
+		var s1 = edge.v;
+		var s2 = edge.w;
+		cfg.nodes().forEach(function(flowNode) {
+			cfg.outEdges(flowNode).forEach(function (flowOut) {
+				var v1 = flowOut.v;
+				var v2 = flowOut.w;
+				if (flowOut.name == 'eps') {
+					var symA = symbol(s1, v1, s2);
+					var symB = symbol(s1, v2, s2);
+					if (!Gprod[symA]) Gprod[symA] = [];
+					Gprod[symA].push(symB);
+				}
+			})
+		})
+	})
+})
 
 
 // 3. For every call edge vi
@@ -140,7 +161,54 @@ console.log(Gprod);
 // ,
 // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
 // entry node of method m.
+// get all sets of 4 states
+var get4 = function(g) {
+	var seqs = [];
+	g.nodes().forEach(function(a) {
+		g.outEdges(a).forEach(function (outA) {
+			var b = outA.w;
+			g.outEdges(b).forEach(function (outB) {
+				var c = outB.w;
+				g.outEdges(c).forEach(function(outC) {
+					var d = outC.w;
+					seqs.push([a, b, c, d].join(","));
+				})
+			})
+		})
+	});
+	var t = Array.from(new Set(seqs));
+	var ret = [];
+	t.forEach(function (s) {
+		ret.push(s.split(','));
+	})
+	return ret;
+}
 
+var seq4 = get4(complementSpec);
+cfg.edges().forEach(function (e) {
+	console.log(e);
+	if (e.name != 'eps') {
+		var vi = e.v;
+		var vj = e.w;
+		var m = e.name;
+		var vk = entryPoints[m];
+		// e is a call edge
+		 // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
+		// entry node of method m.
+		seq4.forEach(function (seq) {
+			var a = seq[0];
+			var b = seq[1];
+			var c = seq[2];
+			var d = seq[3];
+			var sym1 = symbol(a, vi, d);
+			var sym2 = symbol(a, m, b);
+			var sym3 = symbol(b, vk, c);
+			var sym4 = symbol(c, vj, d);
+			if (!Gprod[sym1]) {Gprod[sym1] = []}
+			Gprod[sym1].push([sym2, sym3, sym4].join(''));
+		})
+	}
+})
 
 // 4. For every return node vi ∈ R and every state qj ∈ Q, a production
 // [qj vi qj ] → .
@@ -152,8 +220,7 @@ cfg.nodes().forEach(function(n) {
 	}
 });
 complementSpec.nodes().forEach(function(n) {
-	retNodes.forEach(function (ret) {
-		var sym = symbol(n, ret, n);
+	retNodes.forEach(function (ret) {		var sym = symbol(n, ret.name, n);
 		if (!Gprod[sym]) Gprod[sym] = [];
 		Gprod[sym].push('');
 	});
@@ -162,7 +229,7 @@ complementSpec.nodes().forEach(function(n) {
 // 5. For every transition δ(qi
 // , a) = qj of D, a production [qi a qj ] → a.
 
-
+console.log(Gprod);
 // 5. Test Gprod for lang
 
 
