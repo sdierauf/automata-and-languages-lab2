@@ -6,7 +6,10 @@ var Graph = require('graphlib').Graph;
 var alg = require('graphlib').alg;
 var fs = require('fs');
 var prompt = require('prompt-sync')();
-var GrammarGraph = require('grammar-graph'); 
+var GrammarGraph = require('grammar-graph');
+var copyGraph = function(g) {
+	return require('graphlib').json.read(require('graphlib').json.write(g));
+} 
 
 // Steps:
 // get input
@@ -82,14 +85,14 @@ specContent.split('\n').forEach(function(line) {
 });
 
 // 3. Compute the complement of the DFA (see page 135 of the course book).
-var complementSpec = new Graph({multigraph: true});
+var complementSpec = copyGraph(spec);
 cfg.nodes().forEach(function(node) {
 	console.log(cfg.node(node))
 });
 console.log(spec.nodes())
 
-spec.nodes().forEach(function(node) {
-	var complementNode = spec.node(node);
+complementSpec.nodes().forEach(function(node) {
+	var complementNode = complementSpec.node(node);
 	complementNode.terminal = !complementNode.terminal;
 	complementSpec.setNode(node, complementNode);
 });
@@ -152,13 +155,12 @@ complementSpec.nodes().forEach(function(n) {
 	retNodes.forEach(function (ret) {
 		var sym = symbol(n, ret, n);
 		if (!Gprod[sym]) Gprod[sym] = [];
-		Gprod[sym].push(sym);
-	})
-})
+		Gprod[sym].push('');
+	});
+});
 
 // 5. For every transition δ(qi
 // , a) = qj of D, a production [qi a qj ] → a.
-
 
 
 // 5. Test Gprod for lang
