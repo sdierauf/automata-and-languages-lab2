@@ -8,7 +8,7 @@ var fs = require('fs');
 var prompt = require('prompt-sync')();
 var GrammarGraph = require('grammar-graph');
 var copyGraph = function(g) {
-	return require('graphlib').json.read(require('graphlib').json.write(g));
+	return require('graphlib').json.read(JSON.parse(JSON.stringify(require('graphlib').json.write(g))));
 } 
 
 // Steps:
@@ -110,7 +110,7 @@ var getFinalStates = function(g) {
 }
 
 var symbol = function(s, p, e) {
-	return "["  + s + " " + p + " " + e + "]"
+	return "["  + s + "-" + p + "-" + e + "]"
 }
 
 // 4. Compute the product of FG and the complement DFA, resulting in a
@@ -222,16 +222,24 @@ cfg.nodes().forEach(function(n) {
 complementSpec.nodes().forEach(function(n) {
 	retNodes.forEach(function (ret) {		var sym = symbol(n, ret.name, n);
 		if (!Gprod[sym]) Gprod[sym] = [];
-		Gprod[sym].push('');
+		Gprod[sym].push('eps');
 	});
 });
 
 // 5. For every transition δ(qi
 // , a) = qj of D, a production [qi a qj ] → a.
+complementSpec.edges().forEach(function (e) {
+	console.log(e);
+	var sym = symbol(e.v, e.name, e.w);
+	if (!Gprod[sym]) Gprod[sym] = [];
+	Gprod[sym].push(e.name);
+})
+
 
 console.log(Gprod);
 // 5. Test Gprod for lang
-
+var grammar = new GrammarGraph(Gprod);
+console.log(grammar.vertices());
 
 
 
