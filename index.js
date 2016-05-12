@@ -42,9 +42,9 @@ cfgContent.split('\n').forEach(function(line) {
   if (type == 'node') {
     var node = parts[1];
     var method = parts[2].match(/\([a-zA-Z0-9-_]+\)/g)[0].match(/[a-zA-Z0-9-_]+/g)[0];
-    if (method.contains("main")) {
-      method = "main"
-    }
+    // if (method.contains("main")) {
+    //   method = "main"
+    // }
     var entry = parts[3] == 'entry';
     if (entry) {
       entryPoints[method + ""] = node;
@@ -258,8 +258,8 @@ var deepCopy = function (g) {
 }
 var dirty = true;
 var old = deepCopy(Gprod);
-console.log("Gprod[S]: " + Gprod["S"])
-console.log("old[S]: " + old["S"])
+// console.log("Gprod[S]: " + Gprod["S"])
+// console.log("old[S]: " + old["S"])
 var counter = 0;
 while (dirty) {
 	dirty = false;
@@ -276,10 +276,10 @@ while (dirty) {
 			}
       return false;
 		});
-    if (k == "S") {
-      console.log("counter: " + counter)
-      console.log("S: " + hasVals)
-    }
+    // if (k == "S") {
+    //   console.log("counter: " + counter)
+    //   console.log("S: " + hasVals)
+    // }
 		// console.log(hasVals)
 		if (hasVals.length != 0) {
 			// console.log(hasVals)
@@ -297,10 +297,67 @@ while (dirty) {
 	old = deepCopy(G)
 	// console.log(old)
 }
-console.log("counter: " + counter)
-console.log(Gprod["S"])
-console.log(old["S"]);
+// console.log("counter: " + counter)
+// console.log(Gprod["S"])
+// console.log(old["S"]);
 
 // console.log(old)
 // console.log(cfg.edges())
 // console.log(spec.edges())
+
+// need to strip out #
+
+var replaceHashes = function(g) {
+  var n = deepCopy(g);
+  // console.log(n);
+  var keys = Object.keys(n);
+  for (var i = 0; i < keys.length ; i++) {
+    var key = keys[i]
+    var vals = n[key]
+    var newVals = vals.map(function (elem) {
+      return elem.replace(/#/g, " ");
+    })
+    n[key] = newVals;
+  }
+  // console.log(n);
+  return deepCopy(n);
+}
+
+var g = new GrammarGraph(replaceHashes(Gprod))
+var guide = g.createGuide('S')
+var i = 1;
+var MAX_DEPTH = 20;
+var found = false;
+var recog = g.createRecognizer('S');
+var out = [];
+var descendTree = function (node, s) {
+  if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0) {
+    found = true;
+    out.push('"' + s + '"')
+  }
+  node.next.forEach(function (n) {
+    var newS = s + ' ' + n.val;
+    descendTree(n, newS)
+  })
+}
+
+while (!found && i < MAX_DEPTH) {
+  var choices = guide.choices(i)
+  choices.forEach(function(elem) {
+    // console.log(elem)
+    if (elem.next) {
+      descendTree(elem, elem.val)
+    }
+  })
+  i++
+}
+
+if (out.length == 0) {
+  console.log('could not find any counter examples by max depth ' + MAX_DEPTH);
+}
+if (out.length == 1) {
+  console.log('found counter example "' + out[0] + '" at depth ' + i);
+}
+if (out.length > 1) {
+  console.log('found counter examples ' + out + " at depth " + i);
+}
