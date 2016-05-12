@@ -15,14 +15,14 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
-// cfgFile = 'lab2/Vote/Vote.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-// specFile = 'lab2/EvenOdd/EvenOdd2b.spec';
-// specFile = 'lab2/Vote/Vote_v.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
 // parse into graphs
@@ -214,8 +214,13 @@ cfg.edges().forEach(function (e) {
       var sym2 = symbol(a, m, b);
       var sym3 = symbol(b, vk, c);
       var sym4 = symbol(c, vj, d);
-      if (!Gprod[sym1]) {Gprod[sym1] = []}
-        Gprod[sym1].push([sym2, sym3, sym4].join('#'));
+      if (!Gprod[sym1]) {
+        Gprod[sym1] = []
+      }
+      Gprod[sym1].push([sym2, sym3, sym4].join('#'));
+      if (m.indexOf('init') > -1) {
+        console.log(sym1 + ": " + Gprod[sym1])
+      }
     })
   }
 })
@@ -230,7 +235,8 @@ cfg.nodes().forEach(function(n) {
   }
 });
 complementSpec.nodes().forEach(function(n) {
-  retNodes.forEach(function (ret) {   var sym = symbol(n, ret.name, n);
+  retNodes.forEach(function (ret) {   
+    var sym = symbol(n, ret.name, n);
     if (!Gprod[sym]) Gprod[sym] = [];
     Gprod[sym].push('eps');
   });
@@ -315,7 +321,7 @@ var replaceHashes = function(g) {
     var key = keys[i]
     var vals = n[key]
     var newVals = vals.map(function (elem) {
-      return elem.replace(/#/g, " ");
+      return elem.replace(/#/g, " ").replace(/eps/g, ' ');
     })
     n[key] = newVals;
   }
@@ -323,15 +329,22 @@ var replaceHashes = function(g) {
   return deepCopy(n);
 }
 
+console.log(old["S"]);
+if (!old["S"]) {
+  console.log('spec is sound!!!!');
+  return;
+}
+// console.log(replaceHashes(Gprod));
 var g = new GrammarGraph(replaceHashes(Gprod))
 var guide = g.createGuide('S')
 var i = 1;
-var MAX_DEPTH = 20;
+var MAX_DEPTH = 6;
 var found = false;
 var recog = g.createRecognizer('S');
 var out = [];
 var descendTree = function (node, s) {
-  if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0) {
+  console.log(s);
+  if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0 && s.trim().length > 0) {
     found = true;
     out.push('"' + s + '"')
   }
@@ -356,7 +369,7 @@ if (out.length == 0) {
   console.log('could not find any counter examples by max depth ' + MAX_DEPTH);
 }
 if (out.length == 1) {
-  console.log('found counter example "' + out[0] + '" at depth ' + i);
+  console.log('found counter example ' + out[0] + ' at depth ' + i);
 }
 if (out.length > 1) {
   console.log('found counter examples ' + out + " at depth " + i);
