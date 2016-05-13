@@ -15,14 +15,14 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
-cfgFile = 'lab2/Vote/Vote_ne.cfg';
+// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+// cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
-specFile = 'lab2/Vote/Vote_v.spec';
+// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+// specFile = 'lab2/Vote/Vote_gv.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
 // parse into graphs
@@ -45,7 +45,7 @@ cfgContent.split('\n').forEach(function(line) {
     // if (method.contains("main")) {
     //   method = "main"
     // }
-    var entry = parts[3] == 'entry';
+    var entry = parts[3];
     if (entry) {
       entryPoints[method + ""] = node;
     }
@@ -202,6 +202,17 @@ cfg.edges().forEach(function (e) {
       // console.log("entryPoints " + m + " is undefined!")
       return;
     }
+    // var found = false
+    // complementSpec.edges().forEach(function (e) {
+    //   if (e.name == m) {
+    //     found = true
+    //   }
+    // })
+    // if (!found) {
+    //   return;
+    // } else {
+    //   console.log('was found')
+    // }
     // e is a call edge
      // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
     // entry node of method m.
@@ -230,10 +241,11 @@ cfg.edges().forEach(function (e) {
 var retNodes = [];
 cfg.nodes().forEach(function(n) {
   var node = cfg.node(n);
-  if (!node.entry) {
+  if (node.entry == 'ret') {
     retNodes.push(node);
   }
 });
+console.log(retNodes);
 complementSpec.nodes().forEach(function(n) {
   retNodes.forEach(function (ret) {   
     var sym = symbol(n, ret.name, n);
@@ -264,6 +276,7 @@ var deepCopy = function (g) {
 }
 var dirty = true;
 var old = deepCopy(Gprod);
+// console.log(Gprod)
 // console.log("Gprod[S]: " + Gprod["S"])
 // console.log("old[S]: " + old["S"])
 var counter = 0;
