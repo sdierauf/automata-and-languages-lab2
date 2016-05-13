@@ -15,14 +15,14 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
-// specFile = 'lab2/Vote/Vote_gv.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
+// specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
 // parse into graphs
@@ -46,7 +46,7 @@ cfgContent.split('\n').forEach(function(line) {
     //   method = "main"
     // }
     var entry = parts[3];
-    if (entry) {
+    if (entry == 'entry') {
       entryPoints[method + ""] = node;
     }
     cfg.setNode(node, {name: node, method: method, entry: entry});
@@ -202,17 +202,20 @@ cfg.edges().forEach(function (e) {
       // console.log("entryPoints " + m + " is undefined!")
       return;
     }
-    // var found = false
-    // complementSpec.edges().forEach(function (e) {
-    //   if (e.name == m) {
-    //     found = true
-    //   }
-    // })
-    // if (!found) {
-    //   return;
-    // } else {
-    //   console.log('was found')
+    var found = false
+    console.log(m);
+    complementSpec.edges().forEach(function (e) {
+      // console.log(e)
+      if (e.name == m) {
+        found = true
+      }
+    })
+    if (!found) {
+      return;
     // }
+    } else {
+      console.log('was found')
+    }
     // e is a call edge
      // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
     // entry node of method m.
@@ -249,7 +252,9 @@ console.log(retNodes);
 complementSpec.nodes().forEach(function(n) {
   retNodes.forEach(function (ret) {   
     var sym = symbol(n, ret.name, n);
-    if (!Gprod[sym]) Gprod[sym] = [];
+    if (!Gprod[sym]) {
+      Gprod[sym] = [];
+    }
     Gprod[sym].push('eps');
   });
 });
@@ -341,12 +346,13 @@ var replaceHashes = function(g) {
   // console.log(n);
   return deepCopy(n);
 }
+console.log(Gprod)
 
-console.log(old["S"]);
-if (!old["S"]) {
-  console.log('spec is sound!!!!');
-  return;
-}
+// console.log(old["S"]);
+// if (!old["S"]) {
+//   console.log('spec is sound!!!!');
+//   return;
+// }
 // console.log(replaceHashes(Gprod));
 var g = new GrammarGraph(replaceHashes(Gprod))
 var guide = g.createGuide('S')
@@ -356,7 +362,7 @@ var found = false;
 var recog = g.createRecognizer('S');
 var out = [];
 var descendTree = function (node, s) {
-  console.log(s);
+  // console.log(s);
   if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0 && s.trim().length > 0) {
     found = true;
     out.push('"' + s + '"')
