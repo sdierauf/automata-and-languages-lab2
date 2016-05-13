@@ -15,13 +15,13 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
+// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -90,6 +90,28 @@ specContent.split('\n').forEach(function(line) {
   spec.setEdge(node.name, dest.name, edge, edge);
 });
 
+// for every call that isn't specced in the dfa, add to the dfa
+// looping to itself
+
+// for every entry point key, make sure there's an edge with that in the dfa
+// console.log(spec)
+Object.keys(entryPoints).forEach(function (meth) {
+  var found = false;
+  spec.edges().forEach(function (e) {
+    if (e.name == meth) {
+      found = true;
+    }
+  })
+  if (found) {
+    return
+  }
+  var newName = 'z' + meth;
+  spec.setNode(newName, newName)
+  spec.setEdge(newName, newName, meth, meth)
+})
+
+
+// return;
 // 3. Compute the complement of the DFA (see page 135 of the course book).
 var complementSpec = copyGraph(spec);
 // cfg.nodes().forEach(function(node) {
