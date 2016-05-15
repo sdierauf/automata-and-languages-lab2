@@ -138,7 +138,7 @@ var getFinalStates = function(g) {
 }
 
 var symbol = function(s, p, e) {
-  if (s == 'q1' && p == 'v4' && e == 'q2') {
+  if (s == 'q0' && p == 'c34m1p0' && e == 'q2') {
     console.trace()
   }
   return "["  + s + "-" + p + "-" + e + "]"
@@ -171,15 +171,18 @@ complementSpec.nodes().forEach(function (node) {
   out.forEach(function (edge) {
     var s1 = edge.v;
     var s2 = edge.w;
+    console.log(edge)
     cfg.nodes().forEach(function(flowNode) {
       cfg.outEdges(flowNode).forEach(function (flowOut) {
         var v1 = flowOut.v;
         var v2 = flowOut.w;
-        if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
+        if ((flowOut.name == 'eps' && edge.name == 'eps')) {
           var symA = symbol(s1, v1, s2);
           var symB = symbol(s1, v2, s2);
+          console.log('did it!')
           if (!Gprod[symA]) Gprod[symA] = [];
           Gprod[symA].push(symB);
+          console.log(Gprod[symA])
         }
       })
     })
