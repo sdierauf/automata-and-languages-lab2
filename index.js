@@ -138,6 +138,9 @@ var getFinalStates = function(g) {
 }
 
 var symbol = function(s, p, e) {
+  if (s == 'q1' && p == 'v4' && e == 'q2') {
+    console.trace()
+  }
   return "["  + s + "-" + p + "-" + e + "]"
 }
 
@@ -190,10 +193,13 @@ complementSpec.nodes().forEach(function (node) {
 // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
 // entry node of method m.
 // get all sets of 4 states
-var get4 = function(g) {
+var get4 = function(g, method) {
   var seqs = [];
   g.nodes().forEach(function(a) {
     g.outEdges(a).forEach(function (outA) {
+      if (outA.name != method) {
+        return;
+      }
       var b = outA.w;
       g.outEdges(b).forEach(function (outB) {
         var c = outB.w;
@@ -212,7 +218,7 @@ var get4 = function(g) {
   return ret;
 }
 
-var seq4 = get4(complementSpec);
+
 cfg.edges().forEach(function (e) {
   // console.log(e);
   if (e.name != 'eps') {
@@ -241,6 +247,7 @@ cfg.edges().forEach(function (e) {
     // e is a call edge
      // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
     // entry node of method m.
+    var seq4 = get4(complementSpec, m);
     seq4.forEach(function (seq) {
       var a = seq[0];
       var b = seq[1];
@@ -361,7 +368,7 @@ var replaceHashes = function(g) {
     var key = keys[i]
     var vals = n[key]
     var newVals = vals.map(function (elem) {
-      return elem.replace(/#/g, " ").replace(/eps/g, ' ');
+      return elem.replace(/#/g, " ")
     })
     n[key] = newVals;
   }
@@ -377,6 +384,7 @@ console.log(Gprod)
 // }
 // console.log(replaceHashes(Gprod));
 var g = new GrammarGraph(replaceHashes(Gprod))
+// console.log(g.vertices())
 var guide = g.createGuide('S')
 var i = 1;
 var MAX_DEPTH = 6;
@@ -385,7 +393,8 @@ var recog = g.createRecognizer('S');
 var out = [];
 var descendTree = function (node, s) {
   // console.log(s);
-  if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0 && s.trim().length > 0) {
+  // if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0 && s.trim().length > 0) {
+  if (s && recog.isValid(s) && node.next.length == 0) {
     found = true;
     out.push('"' + s + '"')
   }

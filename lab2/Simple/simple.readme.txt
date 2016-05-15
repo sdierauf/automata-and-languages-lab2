@@ -9,3 +9,6 @@ example_task_description.spec
   It specifies that at most one call is allowed, namely to method a.
   The given flow graph violates this specification, so your tool
   should output a counterexample.
+
+simple2.cfg
+inverse of simple.cfg
