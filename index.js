@@ -44,11 +44,11 @@ var graph2Dot = function(g, name) {
   fs.writeFileSync(fname, out, 'ascii');
   var child = exec('dot -O -Tpng ' + fname,
     (error, stdout, stderr) => {
-      console.log(`stdout: ${stdout}`);
-      console.log(`stderr: ${stderr}`);
-      if (error !== null) {
-        console.log(`exec error: ${error}`);
-      }
+      // console.log(`stdout: ${stdout}`);
+      // console.log(`stderr: ${stderr}`);
+      // if (error !== null) {
+      //   console.log(`exec error: ${error}`);
+      // }
   });
 }
 
@@ -67,11 +67,11 @@ var spec2Dot = function(g, name) {
   fs.writeFileSync(fname, out, 'ascii');
   var child = exec('dot -O -Tpng ' + fname,
     (error, stdout, stderr) => {
-      console.log(`stdout: ${stdout}`);
-      console.log(`stderr: ${stderr}`);
-      if (error !== null) {
-        console.log(`exec error: ${error}`);
-      }
+      // console.log(`stdout: ${stdout}`);
+      // console.log(`stderr: ${stderr}`);
+      // if (error !== null) {
+      //   console.log(`exec error: ${error}`);
+      // }
   });
 }
 
@@ -79,13 +79,13 @@ var spec2Dot = function(g, name) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -153,8 +153,6 @@ specContent.split('\n').forEach(function(line) {
   spec.setNode(dest.name, dest);
   spec.setEdge(node.name, dest.name, edge, edge);
 });
-console.log(spec)
-console.log(getFinalStates(spec))
 spec2Dot(spec, 'spec')
 
 // take minimal cfg
@@ -277,12 +275,12 @@ complementSpec.nodes().forEach(function (node) {
         var v1 = flowOut.v;
         var v2 = flowOut.w;
         // if (!entryPoints[flowOut.name]) {
-        // if (flowOut.name == 'eps' && edge.name == 'eps') {
+        if (flowOut.name == 'eps' || edge.name == 'eps') {
           var symA = symbol(s1, v1, s2);
           var symB = symbol(s1, v2, s2);
           if (!Gprod[symA]) Gprod[symA] = [];
           Gprod[symA].push(symB);
-        // }
+        }
       })
     })
   })
@@ -333,7 +331,7 @@ cfg.edges().forEach(function (e) {
       return;
     }
     var found = false
-    console.log(m);
+    // console.log(m);
     complementSpec.edges().forEach(function (e) {
       // console.log(e)
       if (e.name == m) {
@@ -377,7 +375,7 @@ cfg.nodes().forEach(function(n) {
     retNodes.push(node);
   }
 });
-console.log(retNodes);
+// console.log(retNodes);
 complementSpec.nodes().forEach(function(n) {
   retNodes.forEach(function (ret) {   
     var sym = symbol(n, ret.name, n);
