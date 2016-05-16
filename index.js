@@ -79,13 +79,13 @@ var spec2Dot = function(g, name) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -275,7 +275,7 @@ complementSpec.nodes().forEach(function (node) {
         var v1 = flowOut.v;
         var v2 = flowOut.w;
         // if (!entryPoints[flowOut.name]) {
-        if (flowOut.name == 'eps' || edge.name == 'eps') {
+        if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
           var symA = symbol(s1, v1, s2);
           var symB = symbol(s1, v2, s2);
           if (!Gprod[symA]) Gprod[symA] = [];
@@ -297,9 +297,9 @@ var get4 = function(g, method) {
   var seqs = [];
   g.nodes().forEach(function(a) {
     g.outEdges(a).forEach(function (outA) {
-      if (outA.name != method) {
-        return;
-      }
+      // if (outA.name != method) {
+      //   return;
+      // }
       var b = outA.w;
       g.outEdges(b).forEach(function (outB) {
         var c = outB.w;
@@ -321,7 +321,7 @@ var get4 = function(g, method) {
 
 cfg.edges().forEach(function (e) {
   // console.log(e);
-  if (e.name != 'eps') {
+  if (entryPoints[e.name]) {
     var vi = e.v;
     var vj = e.w;
     var m = e.name;
