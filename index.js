@@ -26,10 +26,55 @@ var getFinalStates = function(g) {
 }
 
 var symbol = function(s, p, e) {
+  if (!s) {
+    console.trace()
+  }
   if (s == 'q0' && p == 'c34m1p0' && e == 'q2') {
     // console.trace()
   }
   return "["  + s + "-" + p + "-" + e + "]"
+}
+
+var getPerm = function(g, n) {
+
+  // var swap = function(list, x, y) {
+  //   var t = list[x];
+  //   list[x] = list[y];
+  //   list[y] = t;
+  // }
+  // var permutation = function(list, n, factorials) {
+  //   if (n == 1) {
+  //     factorials = factorials.push(list.concat())
+  //   } else {
+  //     for (var i = 0; i < n; i++) {
+  //       permutation(list, n-1, factorials);
+  //       if (n % 2 == 0) {
+  //         swap(list, 0, n-1)
+  //       } else {
+  //         swap(list, i, n-1)
+  //       }
+  //     }
+  //   }
+  //   // console.log(factorials)
+  // }
+  var repPerm = function(list, n, cur, f) {
+    // console.log(cur)
+    if (cur.length == n) {
+      f.push(cur)
+    } else {
+      for (var i = 0; i < list.length; i++) {
+        var el = list[i];
+        var t = cur.concat()
+        t.push(el);
+        repPerm(list, n, t, f)
+      }
+    }
+  }
+
+  var perms = [];
+  // console.log(g.nodes())
+  repPerm(g.nodes(), n, [], perms)
+  return perms;
 }
 
 var graph2Dot = function(g, name) {
@@ -79,13 +124,13 @@ var spec2Dot = function(g, name) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -262,29 +307,31 @@ getFinalStates(complementSpec).forEach(function(term) {
 // −→ vj of F and every state sequence qaqb ∈
 // Q2
 // , a production [qa vi qb] → [qa vj qb].
-complementSpec.nodes().forEach(function (node) {
-  var out = complementSpec.outEdges(node);
-  // for each pair in out
-  // console.log(out)
-  out.forEach(function (edge) {
-    var s1 = edge.v;
-    var s2 = edge.w;
-    // console.log(edge)
-    cfg.nodes().forEach(function(flowNode) {
-      cfg.outEdges(flowNode).forEach(function (flowOut) {
-        var v1 = flowOut.v;
-        var v2 = flowOut.w;
-        // if (!entryPoints[flowOut.name]) {
-        if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
-          var symA = symbol(s1, v1, s2);
-          var symB = symbol(s1, v2, s2);
-          if (!Gprod[symA]) Gprod[symA] = [];
-          Gprod[symA].push(symB);
-        }
-      })
+// complementSpec.nodes().forEach(function (node) {
+var out = getPerm(complementSpec, 2)
+// console.log(out)
+// return;
+// for each pair in out
+// console.log(out)
+out.forEach(function (p) {
+  var s1 = p[0];
+  var s2 = p[1];
+  // console.log(edge)
+  cfg.nodes().forEach(function(flowNode) {
+    cfg.outEdges(flowNode).forEach(function (flowOut) {
+      var v1 = flowOut.v;
+      var v2 = flowOut.w;
+      if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
+      // if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
+        var symA = symbol(s1, v1, s2);
+        var symB = symbol(s1, v2, s2);
+        if (!Gprod[symA]) Gprod[symA] = [];
+        Gprod[symA].push(symB);
+      }
     })
   })
 })
+// })
 
 
 // 3. For every call edge vi
@@ -293,32 +340,33 @@ complementSpec.nodes().forEach(function (node) {
 // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
 // entry node of method m.
 // get all sets of 4 states
-var get4 = function(g, method) {
-  var seqs = [];
-  g.nodes().forEach(function(a) {
-    g.outEdges(a).forEach(function (outA) {
-      // if (outA.name != method) {
-      //   return;
-      // }
-      var b = outA.w;
-      g.outEdges(b).forEach(function (outB) {
-        var c = outB.w;
-        g.outEdges(c).forEach(function(outC) {
-          var d = outC.w;
-          seqs.push([a, b, c, d].join(","));
-        })
-      })
-    })
-  });
-  var t = Array.from(new Set(seqs));
-  var ret = [];
-  t.forEach(function (s) {
-    ret.push(s.split(','));
-  })
-  return ret;
-}
 
+// var get4 = function(g, method) {
+//   var seqs = [];
+//   g.nodes().forEach(function(a) {
+//     g.outEdges(a).forEach(function (outA) {
+//       // if (outA.name != method) {
+//       //   return;
+//       // }
+//       var b = outA.w;
+//       g.outEdges(b).forEach(function (outB) {
+//         var c = outB.w;
+//         g.outEdges(c).forEach(function(outC) {
+//           var d = outC.w;
+//           seqs.push([a, b, c, d].join(","));
+//         })
+//       })
+//     })
+//   });
+//   var t = Array.from(new Set(seqs));
+//   var ret = [];
+//   t.forEach(function (s) {
+//     ret.push(s.split(','));
+//   })
+//   return ret;
+// }
 
+var seq4 = getPerm(complementSpec, 4);
 cfg.edges().forEach(function (e) {
   // console.log(e);
   if (entryPoints[e.name]) {
@@ -339,15 +387,26 @@ cfg.edges().forEach(function (e) {
       }
     })
     if (!found) {
+      var v1 = vi;
+      var v2 = vj;
+      out.forEach(function (p) {
+        var s1 = p[0];
+        var s2 = p[1];
+        // console.log(edge)
+        var symA = symbol(s1, v1, s2);
+        var symB = symbol(s1, v2, s2);
+        if (!Gprod[symA]) Gprod[symA] = [];
+        Gprod[symA].push(symB);
+      })
       return;
     }
-    // } else {
+    
+        // } else {
     //   console.log('was found')
     // }
     // e is a call edge
      // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
     // entry node of method m.
-    var seq4 = get4(complementSpec, m);
     // console.log(seq4)
     seq4.forEach(function (seq) {
       var a = seq[0];
@@ -479,7 +538,7 @@ var replaceHashes = function(g) {
   // console.log(n);
   return deepCopy(n);
 }
-console.log(Gprod)
+// console.log(Gprod)
 
 // console.log(old["S"]);
 // if (!old["S"]) {
