@@ -3,13 +3,77 @@
 
 // Deps
 var Graph = require('graphlib').Graph;
+var exec = require('child_process').exec;
+
 var alg = require('graphlib').alg;
 var fs = require('fs');
 var prompt = require('prompt-sync')();
 var GrammarGraph = require('grammar-graph');
 var copyGraph = function(g) {
   return require('graphlib').json.read(JSON.parse(JSON.stringify(require('graphlib').json.write(g))));
-} 
+}
+
+// Graph utility functions
+var getFinalStates = function(g) {
+  var states = [];
+  g.nodes().forEach(function(node) {
+    node = g.node(node);
+    if (node.terminal) {
+      states.push(node.name);
+    }
+  });
+  return states;
+}
+
+var symbol = function(s, p, e) {
+  if (s == 'q0' && p == 'c34m1p0' && e == 'q2') {
+    // console.trace()
+  }
+  return "["  + s + "-" + p + "-" + e + "]"
+}
+
+var graph2Dot = function(g, name) {
+  var out = "digraph finite_state_machine {\n"
+  out += "\trankdir=LR;\n"
+  g.edges().forEach(function(e) {
+    out += "\t"
+    out += e.v + " -> " + e.w + " [ label = \"" + e.name + "\"];\n"
+  })
+  out += "}"
+  var fname = name + '.dot'
+  fs.writeFileSync(fname, out, 'ascii');
+  var child = exec('dot -O -Tpng ' + fname,
+    (error, stdout, stderr) => {
+      console.log(`stdout: ${stdout}`);
+      console.log(`stderr: ${stderr}`);
+      if (error !== null) {
+        console.log(`exec error: ${error}`);
+      }
+  });
+}
+
+var spec2Dot = function(g, name) {
+  var out = "digraph finite_state_machine {\n"
+  out += "\trankdir=LR;\n"
+  out += "\tnode [shape = doublecircle]; "
+  out += getFinalStates(g).join('; ') + "\n"
+  out += "\t node [shape = circle];\n"
+  g.edges().forEach(function(e) {
+    out += "\t"
+    out += e.v + " -> " + e.w + " [ label = \"" + e.name + "\"];\n"
+  })
+  out += "}"
+  var fname = name + '.dot'
+  fs.writeFileSync(fname, out, 'ascii');
+  var child = exec('dot -O -Tpng ' + fname,
+    (error, stdout, stderr) => {
+      console.log(`stdout: ${stdout}`);
+      console.log(`stderr: ${stderr}`);
+      if (error !== null) {
+        console.log(`exec error: ${error}`);
+      }
+  });
+}
 
 // Steps:
 // get input
@@ -89,26 +153,79 @@ specContent.split('\n').forEach(function(line) {
   spec.setNode(dest.name, dest);
   spec.setEdge(node.name, dest.name, edge, edge);
 });
+console.log(spec)
+console.log(getFinalStates(spec))
+spec2Dot(spec, 'spec')
 
-// for every call that isn't specced in the dfa, add to the dfa
-// looping to itself
+// take minimal cfg
+// for every entry point
+// find it's two rets
+// add them to a new cfg
+
+// var minCfg = new Graph({multigraph: true});
+// Object.keys(entryPoints).forEach(function (entry) {
+//   var nodeName = entryPoints[entry];
+//   minCfg.setNode(nodeName, cfg.node(nodeName))
+//   var method = entry
+//   //get ret nodes
+//   var ret1;
+//   var ret2;
+//   var determineRets = function(cur, n) {
+//     if (ret1 && ret2) {
+//       return;
+//     }
+//     var node = cfg.node(cur);
+//     node.n = n
+//     if (node.entry == 'ret' && node.method == method) {
+//       if (!ret1) {
+//         ret1 = node;
+//       } else {
+//         ret2 = node;
+//       }
+//       return;
+//     }
+//     cfg.outEdges(cur).forEach(function(edge) {
+//       if (n != 'eps' && edge.name == 'eps' && entryPoints[n]) {
+//         determineRets(edge.w, n)
+//       } else {
+//         determineRets(edge.w, edge.name)
+//       }     
+//     })
+//   }
+//   determineRets(nodeName, 'eps')
+//   if (ret1) {
+//     minCfg.setNode(ret1.name, ret1)
+//     minCfg.setEdge(nodeName, ret1.name, ret1.n, ret1.n);
+//   }
+//   if (ret2) {
+//     minCfg.setNode(ret2.name, ret2)
+//     minCfg.setEdge(nodeName, ret2.name, ret2.n, ret2.n);
+//   } 
+// })
+// console.log(minCfg.edges())
+// console.log(cfg.edges())
+graph2Dot(cfg, 'cfg')
+// graph2Dot(minCfg, 'minCfg')
+// cfg = minCfg;
+
+// need to add method calls for every edge that isn't present to some trap state
 
 // for every entry point key, make sure there's an edge with that in the dfa
 // console.log(spec)
-Object.keys(entryPoints).forEach(function (meth) {
-  var found = false;
-  spec.edges().forEach(function (e) {
-    if (e.name == meth) {
-      found = true;
-    }
-  })
-  if (found) {
-    return
-  }
-  var newName = 'z' + meth;
-  spec.setNode(newName, newName)
-  spec.setEdge(newName, newName, meth, meth)
-})
+// Object.keys(entryPoints).forEach(function (meth) {
+//   var found = false;
+//   spec.edges().forEach(function (e) {
+//     if (e.name == meth) {
+//       found = true;
+//     }
+//   })
+//   if (found) {
+//     return
+//   }
+//   var newName = 'z' + meth;
+//   spec.setNode(newName, newName)
+//   spec.setEdge(newName, newName, meth, meth)
+// })
 
 
 // return;
@@ -125,24 +242,7 @@ complementSpec.nodes().forEach(function(node) {
   complementSpec.setNode(node, complementNode);
 });
 
-// Graph utility functions
-var getFinalStates = function(g) {
-  var states = [];
-  g.nodes().forEach(function(node) {
-    node = g.node(node);
-    if (node.terminal) {
-      states.push(node.name);
-    }
-  });
-  return states;
-}
 
-var symbol = function(s, p, e) {
-  if (s == 'q0' && p == 'c34m1p0' && e == 'q2') {
-    console.trace()
-  }
-  return "["  + s + "-" + p + "-" + e + "]"
-}
 
 // 4. Compute the product of FG and the complement DFA, resulting in a
 // context-free grammar Gprod.
@@ -171,19 +271,18 @@ complementSpec.nodes().forEach(function (node) {
   out.forEach(function (edge) {
     var s1 = edge.v;
     var s2 = edge.w;
-    console.log(edge)
+    // console.log(edge)
     cfg.nodes().forEach(function(flowNode) {
       cfg.outEdges(flowNode).forEach(function (flowOut) {
         var v1 = flowOut.v;
         var v2 = flowOut.w;
-        if ((flowOut.name == 'eps' && edge.name == 'eps')) {
+        // if (!entryPoints[flowOut.name]) {
+        // if (flowOut.name == 'eps' && edge.name == 'eps') {
           var symA = symbol(s1, v1, s2);
           var symB = symbol(s1, v2, s2);
-          console.log('did it!')
           if (!Gprod[symA]) Gprod[symA] = [];
           Gprod[symA].push(symB);
-          console.log(Gprod[symA])
-        }
+        // }
       })
     })
   })
@@ -243,14 +342,15 @@ cfg.edges().forEach(function (e) {
     })
     if (!found) {
       return;
-    // }
-    } else {
-      console.log('was found')
     }
+    // } else {
+    //   console.log('was found')
+    // }
     // e is a call edge
      // a production [qa vi qd] → [qa m qb][qb vk qc][qc vj qd], where vk is the
     // entry node of method m.
     var seq4 = get4(complementSpec, m);
+    // console.log(seq4)
     seq4.forEach(function (seq) {
       var a = seq[0];
       var b = seq[1];
@@ -264,9 +364,6 @@ cfg.edges().forEach(function (e) {
         Gprod[sym1] = []
       }
       Gprod[sym1].push([sym2, sym3, sym4].join('#'));
-      if (m.indexOf('init') > -1) {
-        console.log(sym1 + ": " + Gprod[sym1])
-      }
     })
   }
 })
@@ -300,6 +397,12 @@ complementSpec.edges().forEach(function (e) {
   Gprod[sym].push(e.name);
 })
 
+// uniq all right sides
+Object.keys(Gprod).forEach(function (k) {
+  var r = Gprod[k]
+  var t = Array.from(new Set(r));
+  Gprod[k] = t
+})
 
 // console.log(Gprod);
 // 5. Test Gprod for lang
