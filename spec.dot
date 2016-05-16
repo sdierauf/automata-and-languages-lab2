@@ -1,0 +1,17 @@
+digraph finite_state_machine {
+	rankdir=LR;
+	node [shape = doublecircle]; q3
+	 node [shape = circle];
+	q0 -> q0 [ label = "eps"];
+	q0 -> q1 [ label = "even"];
+	q1 -> q1 [ label = "eps"];
+	q1 -> q3 [ label = "even"];
+	q3 -> q3 [ label = "even"];
+	q3 -> q3 [ label = "odd"];
+	q3 -> q3 [ label = "eps"];
+	q1 -> q2 [ label = "odd"];
+	q0 -> q2 [ label = "odd"];
+	q2 -> q3 [ label = "odd"];
+	q2 -> q2 [ label = "eps"];
+	q2 -> q1 [ label = "even"];
+}
