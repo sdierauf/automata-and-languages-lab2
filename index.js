@@ -145,7 +145,7 @@ var grammar2Dot = function (g, name) {
       rule = rule.replace(/\[/g, "")
       rule = rule.replace(/\]/g, "")
       rule = rule.replace(/-/g, "_")
-      var compressed = rule.replace(/#/g, "LL")
+      var compressed = rule.replace(/#/g, "___")
       var pieces = []
       if (rule.indexOf('#') > -1) {
         pieces = rule.split('#');
@@ -166,7 +166,7 @@ var grammar2Dot = function (g, name) {
       rule = rule.replace(/\[/g, "")
       rule = rule.replace(/\]/g, "")
       rule = rule.replace(/-/g, "_")
-      var compressed = rule.replace(/#/g, "LL")
+      var compressed = rule.replace(/#/g, "___")
       if (rule.indexOf('#') > -1) {
 
       }
@@ -438,7 +438,7 @@ cfg.edges().forEach(function (e) {
       }
       var triple = [sym2, sym3, sym4];
       if (!found) {
-        Gprod[sym1].push([sym3, sym4].join('#'));
+        // Gprod[sym1].push([sym3, sym4].join('#'));
       } else {
         Gprod[sym1].push(triple.join('#'));
       }
@@ -538,6 +538,35 @@ while (dirty) {
   })
 }
 
+var reachable = function(g) {
+  var reached = {};
+  var queue = ['S'];
+  while (queue.length != 0) {
+    console.log(queue)
+    var cur = queue.shift();
+    var rules = g[cur];
+    if (rules) {
+      reached[cur] = rules;
+      for (var i = 0; i < rules.length; i++) {
+        var curRule = rules[i].split('#');
+        for (var j = 0; j < curRule.length; j++) {
+          if (curRule[j].indexOf('[') > -1 
+              && !reached[curRule[j]]) {
+            console.log(curRule[j])
+            queue.push(curRule[j])
+          }
+        }
+      }
+    }
+  }
+  return reached;
+}
+
+var onlyReachable = reachable(onlyGenerating);
+// console.log('generating: ' + Object.keys(onlyGenerating).length);
+// console.log('reachable: ' + Object.keys(onlyReachable).length)
+// return;
+
 
 var replaceHashes = function(g) {
   var n = deepCopy(g);
@@ -563,12 +592,13 @@ var replaceHashes = function(g) {
 // }
 // console.log(replaceHashes(Gprod));
 // console.log(onlyGenerating)
-if (!onlyGenerating['S']) {
+if (!onlyReachable['S']) {
   console.log('the spec is accepted!');
   return;
 }
-console.log(onlyGenerating)
-var g = new GrammarGraph(replaceHashes(onlyGenerating))
+// console.log(onlyGenerating)
+grammar2Dot(onlyReachable, 'reachable');
+var g = new GrammarGraph(replaceHashes(onlyReachable))
 // console.log(g.vertices())
 var guide = g.createGuide('S')
 var i = 1;
@@ -600,6 +630,8 @@ while (!found && i < MAX_DEPTH) {
   })
   i++;
 }
+
+
 
 
 // // out = out.filter(function(el) {
