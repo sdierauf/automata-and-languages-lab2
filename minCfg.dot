@@ -1,9 +1,0 @@
-digraph finite_state_machine {
-	rankdir=LR;
-	c34m4p0 -> c34m4p1r [ label = "eps"];
-	c34m4p0 -> c34m4p4r [ label = "even"];
-	c34m3p0 -> c34m3p2r [ label = "eps"];
-	c34m1p0 -> c34m1p4r [ label = "even"];
-	c34m5p0 -> c34m5p1r [ label = "eps"];
-	c34m5p0 -> c34m5p4r [ label = "odd"];
-}

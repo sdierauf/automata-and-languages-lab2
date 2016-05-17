@@ -13,6 +13,26 @@ var copyGraph = function(g) {
   return require('graphlib').json.read(JSON.parse(JSON.stringify(require('graphlib').json.write(g))));
 }
 
+
+// Steps:
+// get input
+// var cfgFile = prompt('cfg? ');
+cfgFile = 'lab2/Simple/simple.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+// cfgFile = 'lab2/Vote/Vote_ne.cfg';
+var cfgContent = fs.readFileSync(cfgFile, 'ascii');
+
+// var specFile = prompt('spec? ');
+specFile = 'lab2/Simple/simple.spec';
+// specFile = 'lab2/Simple/allallowed.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+// specFile = 'lab2/Vote/Vote_v.spec';
+var specContent = fs.readFileSync(specFile, 'ascii');
+
+var deepCopy = function (g) {
+  return JSON.parse(JSON.stringify(g));
+}
+
 // Graph utility functions
 var getFinalStates = function(g) {
   var states = [];
@@ -26,12 +46,12 @@ var getFinalStates = function(g) {
 }
 
 var symbol = function(s, p, e) {
-  if (!s) {
-    console.trace()
-  }
-  if (s == 'q2' && p == 'c34m5p1r' && e == 'q3') {
-    console.trace()
-  }
+  // if (!s) {
+  //   console.trace()
+  // }
+  // if (s == 'q2' && p == 'c34m5p1r' && e == 'q3') {
+  //   console.trace()
+  // }
   return "["  + s + "-" + p + "-" + e + "]"
 }
 
@@ -56,10 +76,22 @@ var getPerm = function(g, n) {
   return perms;
 }
 
-var graph2Dot = function(g, name) {
+var graph2Dot = function(g, name, entryP) {
   var out = "digraph finite_state_machine {\n"
   out += "\trankdir=LR;\n"
+  var entryPInv = {};
+  Object.keys(entryP).forEach(function(k) {
+    var v = entryP[k];
+    entryPInv[v] = k
+  });
+  // console.log(entryPInv)
   g.edges().forEach(function(e) {
+    if (entryPInv[e.v]) {
+      var s =  "\t" + entryPInv[e.v] + " ->  " + e.v + ";\n"
+      if (out.indexOf(s) < 0) {
+        out += s
+      }
+    }
     out += "\t"
     out += e.v + " -> " + e.w + " [ label = \"" + e.name + "\"];\n"
   })
@@ -73,7 +105,7 @@ var graph2Dot = function(g, name) {
       // if (error !== null) {
       //   console.log(`exec error: ${error}`);
       // }
-  });
+    });
 }
 
 var spec2Dot = function(g, name) {
@@ -96,22 +128,66 @@ var spec2Dot = function(g, name) {
       // if (error !== null) {
       //   console.log(`exec error: ${error}`);
       // }
-  });
+    });
 }
 
-// Steps:
-// get input
-// var cfgFile = prompt('cfg? ');
-cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
-// cfgFile = 'lab2/Vote/Vote_ne.cfg';
-var cfgContent = fs.readFileSync(cfgFile, 'ascii');
+var grammar2Dot = function (g, name) {
+  var out = "digraph finite_state_machine {\n"
+  out += "\trankdir=LR;\n"
+  var t = deepCopy(g);
+  Object.keys(g).forEach(function(k) {
+    var rules = g[k];
+    rules.forEach(function (rule) {
+      out += '\t';
+      k = k.replace(/\[/g, "")
+      k = k.replace(/\]/g, "")
+      k = k.replace(/-/g, "_")
+      rule = rule.replace(/\[/g, "")
+      rule = rule.replace(/\]/g, "")
+      rule = rule.replace(/-/g, "_")
+      var compressed = rule.replace(/#/g, "LL")
+      var pieces = []
+      if (rule.indexOf('#') > -1) {
+        pieces = rule.split('#');
+      }
+      if (!t[compressed]) {
+        t[compressed] = [];
+      }
+      t[compressed] = t[compressed].concat(pieces)
+    }) 
+  })
+  Object.keys(t).forEach(function (k) {
+    var rules = t[k];
+    rules.forEach(function (rule) {
+      out += '\t';
+      k = k.replace(/\[/g, "")
+      k = k.replace(/\]/g, "")
+      k = k.replace(/-/g, "_")
+      rule = rule.replace(/\[/g, "")
+      rule = rule.replace(/\]/g, "")
+      rule = rule.replace(/-/g, "_")
+      var compressed = rule.replace(/#/g, "LL")
+      if (rule.indexOf('#') > -1) {
 
-// var specFile = prompt('spec? ');
-specFile = 'lab2/Simple/simple.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
-// specFile = 'lab2/Vote/Vote_v.spec';
-var specContent = fs.readFileSync(specFile, 'ascii');
+      }
+      var s = k + ' -> ' + compressed + ';\n'
+      out += s;
+    })
+  })
+  out += '}'
+  var fname = name + '.dot'
+  fs.writeFileSync(fname, out, 'ascii');
+  var child = exec('dot -O -Tpng ' + fname,
+    (error, stdout, stderr) => {
+      // console.log(`stdout: ${stdout}`);
+      // console.log(`stderr: ${stderr}`);
+      // if (error !== null) {
+      //   console.log(`exec error: ${error}`);
+      // }
+    });
+}
+
+
 
 // parse into graphs
 // console.log(cfgContent);
@@ -124,7 +200,7 @@ var entryPoints = {};
 var cfg = new Graph({multigraph: true});
 cfgContent.split('\n').forEach(function(line) {
   if (line.length == 0) { return }
-  var parts = line.split(/\s+/);
+    var parts = line.split(/\s+/);
   parts = parts.map(function (el) {return el.trim()});
   var type = parts[0];
   if (type == 'node') {
@@ -179,7 +255,7 @@ specContent.split('\n').forEach(function(line) {
 });
 spec2Dot(spec, 'spec')
 
-graph2Dot(cfg, 'cfg')
+graph2Dot(cfg, 'cfg', entryPoints)
 
 
 // return;
@@ -195,6 +271,26 @@ complementSpec.nodes().forEach(function(node) {
   complementNode.terminal = !complementNode.terminal;
   complementSpec.setNode(node, complementNode);
 });
+
+// Object.keys(entryPoints).forEach(function(k) {
+//   var found = false
+//   complementSpec.edges().forEach(function (e) {
+//     // console.log(e)
+//     if (e.name == k) {
+//       found = true
+//       return;
+//     }
+//   })
+//   if (!found) {
+//     complementSpec.nodes().forEach(function(node) {
+//       complementSpec.setEdge(node, node, k, k)
+//     })
+//   }
+// })
+// spec2Dot(complementSpec, 'complement')
+
+
+
 
 
 
@@ -281,20 +377,20 @@ var seq4 = getPerm(complementSpec, 4);
 cfg.edges().forEach(function (e) {
   var vi = e.v;
   var vj = e.w;
-  if (!entryPoints[e.name]) {
-      var v1 = vi;
-      var v2 = vj;
-      out.forEach(function (p) {
-        var s1 = p[0];
-        var s2 = p[1];
-        // console.log(edge)
-        var symA = symbol(s1, v1, s2);
-        var symB = symbol(s1, v2, s2);
-        if (!Gprod[symA]) Gprod[symA] = [];
-        Gprod[symA].push(symB);
-      })
-      return;
-  }
+  // if (!entryPoints[e.name]) {
+  //     var v1 = vi;
+  //     var v2 = vj;
+  //     out.forEach(function (p) {
+  //       var s1 = p[0];
+  //       var s2 = p[1];
+  //       // console.log(edge)
+  //       var symA = symbol(s1, v1, s2);
+  //       var symB = symbol(s1, v2, s2);
+  //       if (!Gprod[symA]) Gprod[symA] = [];
+  //       Gprod[symA].push(symB);
+  //     })
+  //     return;
+  // }
   // console.log(e);
   if (entryPoints[e.name]) {
     var m = e.name;
@@ -321,8 +417,7 @@ cfg.edges().forEach(function (e) {
       })
       return;
     }
-    
-        // } else {
+    //     } else {
     //   console.log('was found')
     // }
     // e is a call edge
@@ -341,7 +436,13 @@ cfg.edges().forEach(function (e) {
       if (!Gprod[sym1]) {
         Gprod[sym1] = []
       }
-      Gprod[sym1].push([sym2, sym3, sym4].join('#'));
+      var triple = [sym2, sym3, sym4];
+      if (!found) {
+        Gprod[sym1].push(sym4);
+      } else {
+        Gprod[sym1].push(triple.join('#'));
+      }
+      
     })
   }
 })
@@ -388,64 +489,8 @@ var grammar = new GrammarGraph(Gprod);
 // console.log(grammar.vertices());
 // console.log(grammar)
 
-var terminals = new Set();
-var deepCopy = function (g) {
-	return JSON.parse(JSON.stringify(g));
-}
-var dirty = true;
+
 var old = deepCopy(Gprod);
-// console.log(Gprod)
-// console.log("Gprod[S]: " + Gprod["S"])
-// console.log("old[S]: " + old["S"])
-// var counter = 0;
-
-// while (dirty) {
-// 	dirty = false;
-// 	G = {};
-// 	Object.keys(old).forEach(function (k) {
-// 		var arr = old[k]
-// 		// remove each value from rhs that doesn't have a key
-// 		var hasVals = arr.filter(function (el) {
-// 			var pieces = el.split("#");
-// 			for (var i = 0; i < pieces.length; i++) {
-// 				if (!old[pieces[i]]) {
-//           return false;
-//         }
-// 			}
-//       return true;
-// 		});
-//     // if (k == "S") {
-//     //   console.log("counter: " + counter)
-//     //   console.log("S: " + hasVals)
-//     // }
-// 		// console.log(hasVals)
-// 		if (hasVals.length != 0) {
-// 			// console.log(hasVals)
-// 			G[k] = hasVals
-//       if (hasVals.length != arr.length) {
-//         dirty = true;
-//       }
-// 		} else {
-// 			dirty = true;
-// 			// remove self from map
-// 			// ... by not doing anything?
-// 		}
-// 	})
-//   counter++;
-// 	old = deepCopy(G)
-// 	// console.log(old)
-// }
-// console.log("counter: " + counter)
-// console.log(Gprod["S"])
-// console.log(old["S"]);
-
-// console.log(old)
-// console.log(cfg.edges())
-// console.log(spec.edges())
-
-// need to strip out #
-
-
 // eliminate all nongenerating symbols
 // eliminate all rules that are now useless
 var onlyGenerating = old;
@@ -465,7 +510,6 @@ while (dirty) {
           return;
         }
         if (!old[piece]) {
-          console.log(piece);
           nongenerating.add(piece);
         }
       })
@@ -495,14 +539,6 @@ while (dirty) {
 }
 
 
-// Object.keys(onlyGenerating).forEach(function(k) {
-
-// }
-
-// console.log(onlyGenerating)
-// return;
-
-
 var replaceHashes = function(g) {
   var n = deepCopy(g);
   // console.log(n);
@@ -526,10 +562,12 @@ var replaceHashes = function(g) {
 //   return;
 // }
 // console.log(replaceHashes(Gprod));
+// console.log(onlyGenerating)
 if (!onlyGenerating['S']) {
   console.log('the spec is accepted!');
-  return;
+  // return;
 }
+console.log(onlyGenerating)
 var g = new GrammarGraph(replaceHashes(onlyGenerating))
 // console.log(g.vertices())
 var guide = g.createGuide('S')
@@ -538,6 +576,8 @@ var MAX_DEPTH = 6;
 var found = false;
 var recog = g.createRecognizer('S');
 var out = [];
+
+
 var descendTree = function (node, s) {
   // console.log(s);
   // if (s && recog.isValid(s) && s.indexOf("[") < 0 && node.next.length == 0 && s.trim().length > 0) {
@@ -550,21 +590,21 @@ var descendTree = function (node, s) {
     descendTree(n, newS)
   })
 }
-
 while (!found && i < MAX_DEPTH) {
   var choices = guide.choices(i)
   choices.forEach(function(elem) {
-    // console.log(elem)
+  // console.log(elem)
     if (elem.next) {
       descendTree(elem, elem.val)
     }
   })
-  i++
+  i++;
 }
 
-// out = out.filter(function(el) {
-//   return el.indexOf('[') < 0 && el.indexOf('eps') < 0
-// })
+
+// // out = out.filter(function(el) {
+// //   return el.indexOf('[') < 0 && el.indexOf('eps') < 0
+// // })
 
 if (out.length == 0) {
   console.log('could not find any counter examples by max depth ' + MAX_DEPTH);
@@ -575,3 +615,4 @@ if (out.length == 1) {
 if (out.length > 1) {
   console.log('found counter examples ' + out + " at depth " + i);
 }
+
