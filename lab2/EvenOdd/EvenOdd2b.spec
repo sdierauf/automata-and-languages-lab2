@@ -3,10 +3,10 @@
 [q1]-init->[q1]
 [q2]-init->[q2]
 (q3)-init->(q3)
-[q0]-java~lang~Object~init->[q0]
-[q1]-java~lang~Object~init->[q1]
-[q2]-java~lang~Object~init->[q2]
-(q3)-java~lang~Object~init->(q3)
+[q0]-javalangObjectinit->[q0]
+[q1]-javalangObjectinit->[q1]
+[q2]-javalangObjectinit->[q2]
+(q3)-javalangObjectinit->(q3)
 [q0]-even->[q1]
 [q1]-eps->[q1]
 [q1]-even->(q3)

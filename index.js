@@ -18,14 +18,18 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+cfgFile = 'test.cfg';
+// cfgFile = 'micro.cfg';
+// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
+specFile = 'test.spec';
+// specFile = 'micropass.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
+// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -205,10 +209,7 @@ cfgContent.split('\n').forEach(function(line) {
   var type = parts[0];
   if (type == 'node') {
     var node = parts[1];
-    var method = parts[2].match(/\([a-zA-Z0-9-_]+\)/g)[0].match(/[a-zA-Z0-9-_]+/g)[0];
-    // if (method.contains("main")) {
-    //   method = "main"
-    // }
+    var method = parts[2].match(/\([a-zA-Z0-9-_]+\)/g)[0].match(/[a-zA-Z0-9]+/g)[0];
     var entry = parts[3];
     if (entry == 'entry') {
       entryPoints[method + ""] = node;
@@ -261,37 +262,13 @@ graph2Dot(cfg, 'cfg', entryPoints)
 // return;
 // 3. Compute the complement of the DFA (see page 135 of the course book).
 var complementSpec = copyGraph(spec);
-// cfg.nodes().forEach(function(node) {
-//   console.log(cfg.node(node))
-// });
-// console.log(spec.nodes())
 
 complementSpec.nodes().forEach(function(node) {
   var complementNode = complementSpec.node(node);
   complementNode.terminal = !complementNode.terminal;
   complementSpec.setNode(node, complementNode);
 });
-
-// Object.keys(entryPoints).forEach(function(k) {
-//   var found = false
-//   complementSpec.edges().forEach(function (e) {
-//     // console.log(e)
-//     if (e.name == k) {
-//       found = true
-//       return;
-//     }
-//   })
-//   if (!found) {
-//     complementSpec.nodes().forEach(function(node) {
-//       complementSpec.setEdge(node, node, k, k)
-//     })
-//   }
-// })
 spec2Dot(complementSpec, 'complement')
-
-
-
-
 
 
 // 4. Compute the product of FG and the complement DFA, resulting in a
@@ -329,7 +306,6 @@ out.forEach(function (p) {
       var v1 = flowOut.v;
       var v2 = flowOut.w;
       if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
-      // if (flowOut.name == 'eps' || !entryPoints[flowOut.name]) {
         var symA = symbol(s1, v1, s2);
         var symB = symbol(s1, v2, s2);
         if (!Gprod[symA]) Gprod[symA] = [];
@@ -341,6 +317,7 @@ out.forEach(function (p) {
 // })
 
 
+
 // 3. For every call edge vi
 // m−→ vj and every state sequence qaqbqcqd ∈ Q4
 // ,
@@ -348,50 +325,12 @@ out.forEach(function (p) {
 // entry node of method m.
 // get all sets of 4 states
 
-// var get4 = function(g, method) {
-//   var seqs = [];
-//   g.nodes().forEach(function(a) {
-//     g.outEdges(a).forEach(function (outA) {
-//       // if (outA.name != method) {
-//       //   return;
-//       // }
-//       var b = outA.w;
-//       g.outEdges(b).forEach(function (outB) {
-//         var c = outB.w;
-//         g.outEdges(c).forEach(function(outC) {
-//           var d = outC.w;
-//           seqs.push([a, b, c, d].join(","));
-//         })
-//       })
-//     })
-//   });
-//   var t = Array.from(new Set(seqs));
-//   var ret = [];
-//   t.forEach(function (s) {
-//     ret.push(s.split(','));
-//   })
-//   return ret;
-// }
 
 var seq4 = getPerm(complementSpec, 4);
+
 cfg.edges().forEach(function (e) {
   var vi = e.v;
   var vj = e.w;
-  // if (!entryPoints[e.name]) {
-  //     var v1 = vi;
-  //     var v2 = vj;
-  //     out.forEach(function (p) {
-  //       var s1 = p[0];
-  //       var s2 = p[1];
-  //       // console.log(edge)
-  //       var symA = symbol(s1, v1, s2);
-  //       var symB = symbol(s1, v2, s2);
-  //       if (!Gprod[symA]) Gprod[symA] = [];
-  //       Gprod[symA].push(symB);
-  //     })
-  //     return;
-  // }
-  // console.log(e);
   if (entryPoints[e.name]) {
     var m = e.name;
     var vk = entryPoints[m];
@@ -412,7 +351,9 @@ cfg.edges().forEach(function (e) {
         // console.log(edge)
         var symA = symbol(s1, v1, s2);
         var symB = symbol(s1, v2, s2);
-        if (!Gprod[symA]) Gprod[symA] = [];
+        if (!Gprod[symA]) {
+          Gprod[symA] = [];
+        }
         Gprod[symA].push(symB);
       })
       // return;
@@ -472,20 +413,21 @@ complementSpec.nodes().forEach(function(n) {
 complementSpec.edges().forEach(function (e) {
   // console.log(e);
   var sym = symbol(e.v, e.name, e.w);
-  if (!Gprod[sym]) Gprod[sym] = [];
+  if (!Gprod[sym]) {
+    Gprod[sym] = [];
+  } 
   Gprod[sym].push(e.name);
 })
 
 // uniq all right sides
-Object.keys(Gprod).forEach(function (k) {
-  var r = Gprod[k]
-  var t = Array.from(new Set(r));
-  Gprod[k] = t
-})
+// Object.keys(Gprod).forEach(function (k) {
+//   var r = Gprod[k]
+//   var t = Array.from(new Set(r));
+//   Gprod[k] = t
+// })
 
 // console.log(Gprod);
 // 5. Test Gprod for lang
-var grammar = new GrammarGraph(Gprod);
 // console.log(grammar.vertices());
 // console.log(grammar)
 
@@ -495,6 +437,29 @@ var old = deepCopy(Gprod);
 // eliminate all rules that are now useless
 var onlyGenerating = old;
 var dirty = true;
+
+var reachable = function(g) {
+  var reached = {};
+  var queue = ['S'];
+  while (queue.length != 0) {
+    var cur = queue.shift();
+    var rules = g[cur];
+    if (rules) {
+      reached[cur] = rules;
+      for (var i = 0; i < rules.length; i++) {
+        var curRule = rules[i].split('#');
+        for (var j = 0; j < curRule.length; j++) {
+          if (curRule[j].indexOf('[') > -1 
+              && !reached[curRule[j]]) {
+            queue.push(curRule[j])
+          }
+        }
+      }
+    }
+  }
+  return reached;
+}
+
 while (dirty) {
   dirty = false;
   old = deepCopy(onlyGenerating);
@@ -538,31 +503,10 @@ while (dirty) {
   })
 }
 
-var reachable = function(g) {
-  var reached = {};
-  var queue = ['S'];
-  while (queue.length != 0) {
-    console.log(queue)
-    var cur = queue.shift();
-    var rules = g[cur];
-    if (rules) {
-      reached[cur] = rules;
-      for (var i = 0; i < rules.length; i++) {
-        var curRule = rules[i].split('#');
-        for (var j = 0; j < curRule.length; j++) {
-          if (curRule[j].indexOf('[') > -1 
-              && !reached[curRule[j]]) {
-            console.log(curRule[j])
-            queue.push(curRule[j])
-          }
-        }
-      }
-    }
-  }
-  return reached;
-}
+
 
 var onlyReachable = reachable(onlyGenerating);
+console.log(onlyReachable)
 // console.log('generating: ' + Object.keys(onlyGenerating).length);
 // console.log('reachable: ' + Object.keys(onlyReachable).length)
 // return;
@@ -596,13 +540,15 @@ if (!onlyReachable['S']) {
   console.log('the spec is accepted!');
   return;
 }
+
+
 // console.log(onlyGenerating)
 grammar2Dot(onlyReachable, 'reachable');
 var g = new GrammarGraph(replaceHashes(onlyReachable))
 // console.log(g.vertices())
 var guide = g.createGuide('S')
 var i = 1;
-var MAX_DEPTH = 6;
+var MAX_DEPTH = 8;
 var found = false;
 var recog = g.createRecognizer('S');
 var out = [];
@@ -623,7 +569,6 @@ var descendTree = function (node, s) {
 while (!found && i < MAX_DEPTH) {
   var choices = guide.choices(i)
   choices.forEach(function(elem) {
-  // console.log(elem)
     if (elem.next) {
       descendTree(elem, elem.val)
     }
