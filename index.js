@@ -25,7 +25,7 @@ var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
-specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -287,7 +287,7 @@ complementSpec.nodes().forEach(function(node) {
 //     })
 //   }
 // })
-// spec2Dot(complementSpec, 'complement')
+spec2Dot(complementSpec, 'complement')
 
 
 
@@ -415,7 +415,7 @@ cfg.edges().forEach(function (e) {
         if (!Gprod[symA]) Gprod[symA] = [];
         Gprod[symA].push(symB);
       })
-      return;
+      // return;
     }
     //     } else {
     //   console.log('was found')
@@ -438,7 +438,7 @@ cfg.edges().forEach(function (e) {
       }
       var triple = [sym2, sym3, sym4];
       if (!found) {
-        Gprod[sym1].push(sym4);
+        Gprod[sym1].push([sym3, sym4].join('#'));
       } else {
         Gprod[sym1].push(triple.join('#'));
       }
@@ -565,7 +565,7 @@ var replaceHashes = function(g) {
 // console.log(onlyGenerating)
 if (!onlyGenerating['S']) {
   console.log('the spec is accepted!');
-  // return;
+  return;
 }
 console.log(onlyGenerating)
 var g = new GrammarGraph(replaceHashes(onlyGenerating))
