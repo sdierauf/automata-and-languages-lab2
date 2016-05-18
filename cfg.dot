@@ -1,8 +1,27 @@
 digraph finite_state_machine {
 	rankdir=LR;
-	main ->  v0;
-	v0 -> v9 [ label = "b"];
-	v9 -> v2 [ label = "eps"];
-	b ->  v6;
-	v6 -> v7 [ label = "eps"];
+	odd ->  c34m4p0;
+	c34m4p0 -> c34m4p1 [ label = "eps"];
+	c34m4p0 -> c34m4p2 [ label = "eps"];
+	c34m4p1 -> c34m4p1r [ label = "eps"];
+	c34m4p2 -> c34m4p3 [ label = "eps"];
+	c34m4p3 -> c34m4p4 [ label = "even"];
+	c34m4p4 -> c34m4p4r [ label = "eps"];
+	init ->  c34m3p0;
+	c34m3p0 -> c34m3p1 [ label = "eps"];
+	c34m3p1 -> c34m3p2 [ label = "javalangObjectinit"];
+	c34m3p2 -> c34m3p2r [ label = "eps"];
+	main ->  c34m1p0;
+	c34m1p0 -> c34m1p1 [ label = "eps"];
+	c34m1p1 -> c34m1p2 [ label = "init"];
+	c34m1p2 -> c34m1p3 [ label = "eps"];
+	c34m1p3 -> c34m1p4 [ label = "even"];
+	c34m1p4 -> c34m1p4r [ label = "eps"];
+	even ->  c34m5p0;
+	c34m5p0 -> c34m5p1 [ label = "eps"];
+	c34m5p0 -> c34m5p2 [ label = "eps"];
+	c34m5p1 -> c34m5p1r [ label = "eps"];
+	c34m5p2 -> c34m5p3 [ label = "eps"];
+	c34m5p3 -> c34m5p4 [ label = "odd"];
+	c34m5p4 -> c34m5p4r [ label = "eps"];
 }

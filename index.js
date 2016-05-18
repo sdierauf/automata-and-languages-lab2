@@ -18,19 +18,19 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'test.cfg';
-cfgFile = 'micro.cfg';
-// cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
+// cfgFile = 'recursive.cfg';
+// cfgFile = 'micro.cfg';
+cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-specFile = 'test.spec';
-specFile = 'micropass.spec';
-specFile = 'microfail.spec';
+// specFile = 'recursivepass.spec';
+// specFile = 'micropass.spec';
+// specFile = 'microfail.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
-// specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
+specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
@@ -594,16 +594,79 @@ var entryNodeOneCall = function (g) {
   return loopless;
 }
 
+// for some rule f
+// if walking f ends up back at f with no other options
+// remove f
+
+var removeInfiniteLoops = function (g) {
+  // for some rule in g[f]
+  // if rule comes back to f && rule does not terminate
+  // remove rule
+  var pruned = {};
+  var isTerminating = function () {
+
+  }
+  Object.keys(g).forEach(function(key) {
+    
+  })
+}
+
+var pruneNonTerminating = function(g) {
+  var terminating = {};
+  Object.keys(g).forEach(function(k) {
+    if (g[k].length == 1 && g[k][0].indexOf('[') < 0) {
+      console.log('added ' + k)
+      terminating[k] = g[k];
+    }
+  })
+  var isTerminating = function(n, visited) {
+    var rules = g[n];
+    if (!rules || terminating[n]) {
+      return true;
+    } else {
+      var atLeastOneTerminating = false;
+      for (var i = 0; i < rules.length; i++) {
+        var pieces = rules[i].split('#');
+        var t = true;
+        for (var j = 0; j < pieces.length; j++) {
+          var piece = pieces[j];
+          if (terminating[piece]) {
+            t = t && true;
+          } else if (visited.has(piece)) {
+            // already seen this piece
+            t = t && false;
+          } else {
+            visited.add(piece);
+            t = t && isTerminating(piece, visited);
+          } 
+        }
+        atLeastOneTerminating = atLeastOneTerminating || t;
+      }
+      if (!atLeastOneTerminating) {
+        console.log(n + ' is not terminating!');
+      }
+
+      return atLeastOneTerminating;
+    }
+  }
+  Object.keys(g).forEach(function(k) {
+    if (g[k] && isTerminating(k, new Set())) {
+      terminating[k] = g[k];
+    }
+  })
+  return terminating;
+}
+
 var onlyGenerating = pruneNonGenerating(deepCopy(Gprod))
 var onlyReachable = reachable(onlyGenerating);
 // onlyReachable = entryNodeOneCall(onlyReachable);
+grammar2Dot(onlyReachable, 'reachable');
 
-// onlyReachable = reachable(onlyReachable);
-console.log('should be gone..')
+onlyReachable = pruneNonTerminating(onlyReachable);
+// console.log('should be gone..')
 // onlyReachable = pruneNonGenerating(onlyReachable)
 console.log(onlyReachable)
 
-grammar2Dot(onlyReachable, 'reachable');
 
 // console.log('generating: ' + Object.keys(onlyGenerating).length);
 // console.log('reachable: ' + Object.keys(onlyReachable).length)
