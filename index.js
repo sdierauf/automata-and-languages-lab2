@@ -18,7 +18,7 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-cfgFile = 'test.cfg';
+// cfgFile = 'test.cfg';
 // cfgFile = 'micro.cfg';
 // cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
 // cfgFile = 'lab2/Vote/Vote_ne.cfg';
@@ -26,7 +26,7 @@ var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-specFile = 'test.spec';
+// specFile = 'test.spec';
 // specFile = 'micropass.spec';
 // specFile = 'microfail.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
@@ -510,10 +510,12 @@ var pruneNonGenerating = function(g) {
         var pieces = rule.split('#');
         pieces.forEach(function(piece) {
           // if it's a terminal, return
+          // console.log(piece)
           if (piece.indexOf('[') < 0) {
             return;
           }
-          if (!old[piece]) {
+          if (!old[piece] || old[piece].length == 0) {
+            // console.log(piece)
             nongenerating.add(piece);
           }
         })
@@ -544,13 +546,63 @@ var pruneNonGenerating = function(g) {
   return g;
 }
 
-
+// var entryNodeOneCall = function (g) {
+//   var loopless = {
+//     'S' : g['S']
+//   };
+//   cfg.nodes().forEach(function(node) {
+//     console.log(cfg.node(node));
+//   })
+//   var queue = [g['S'][0]]
+//   while (queue.length != 0) {
+//     var cur = queue.shift();
+//     var rules = g[cur]
+//     console.log(cur)
+//     // console.log(rules)
+//     if (rules && cur.indexOf('[') > -1) {
+//       // console.log('trueee')
+//       var node = cur.match(/-[a-zA-Z0-9]+-/g)[0].match(/[a-zA-Z0-9]+/g)[0]
+//       var numRets = 0
+//       if (cfg.node(node) && cfg.node(node).entry == 'entry'){
+//         var methodName = cfg.node(node).method;
+//         cfg.nodes().forEach(function(n) {
+//           var t = cfg.node(n);
+//           // console.log(t)
+//           if (t.method == methodName && t.entry == 'ret') {
+//             numRets++;
+//           }
+//         })
+//         console.log(methodName + ' has ' + numRets + ' rets')
+//       }
+//       console.log(rules)
+//       if (cfg.node(node) && cfg.node(node).entry == 'entry' && cfg.node(node).method != 'main' && rules.length < numRets) {
+//         console.log('please do nothing')
+//       } else {
+//         console.log('added ' + cur + ': ' + rules)
+//         loopless[cur] = rules;
+//         rules.forEach(function (rule) {
+//           var pieces = rule.split('#');
+//           pieces.forEach(function(piece) {
+//             if (!loopless[piece]) {
+//               queue.push(piece);
+//             }
+//           })
+//         })
+//       }
+//     }
+//   }
+//   return loopless;
+// }
 
 var onlyGenerating = pruneNonGenerating(deepCopy(Gprod))
 var onlyReachable = reachable(onlyGenerating);
-onlyReachable = deloop(onlyReachable);
-onlyReachable = reachable(onlyReachable);
-onlyReachable = pruneNonGenerating(onlyReachable)
+// onlyReachable = entryNodeOneCall(onlyReachable);
+
+// onlyReachable = reachable(onlyReachable);
+console.log('should be gone..')
+// onlyReachable = pruneNonGenerating(onlyReachable)
+console.log(onlyReachable)
+
 grammar2Dot(onlyReachable, 'reachable');
 
 // console.log('generating: ' + Object.keys(onlyGenerating).length);
