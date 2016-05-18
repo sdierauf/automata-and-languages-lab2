@@ -1,22 +1,17 @@
 digraph finite_state_machine {
 	rankdir=LR;
-											S -> q0_v0_q0;
+									S -> q0_v0_q0;
 	q0_v0_q0 -> q0_b_q1___q1_v6_q1___q1_v9_q0;
 	q0_b_q1 -> b;
 	q1_v6_q1 -> q1_v7_q1;
 	q1_v9_q0 -> q1_a_q1___q1_v3_q0___q0_v2_q0;
 	q1_v7_q1 -> eps;
 	q1_a_q1 -> a;
-	q1_v3_q0 -> q1_a_q1___q1_v3_q0___q0_v5_q0;
 	q0_v2_q0 -> eps;
-	q0_v5_q0 -> eps;
 	q0_b_q1___q1_v6_q1___q1_v9_q0 -> q0_b_q1;
 	q0_b_q1___q1_v6_q1___q1_v9_q0 -> q1_v6_q1;
 	q0_b_q1___q1_v6_q1___q1_v9_q0 -> q1_v9_q0;
 	q1_a_q1___q1_v3_q0___q0_v2_q0 -> q1_a_q1;
 	q1_a_q1___q1_v3_q0___q0_v2_q0 -> q1_v3_q0;
 	q1_a_q1___q1_v3_q0___q0_v2_q0 -> q0_v2_q0;
-	q1_a_q1___q1_v3_q0___q0_v5_q0 -> q1_a_q1;
-	q1_a_q1___q1_v3_q0___q0_v5_q0 -> q1_v3_q0;
-	q1_a_q1___q1_v3_q0___q0_v5_q0 -> q0_v5_q0;
 }

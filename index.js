@@ -28,6 +28,7 @@ var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 specFile = 'lab2/Simple/simple.spec';
 specFile = 'test.spec';
 // specFile = 'micropass.spec';
+// specFile = 'microfail.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
 // specFile = 'lab2/EvenOdd/EvenOdd1b.spec';
 // specFile = 'lab2/Vote/Vote_v.spec';
@@ -435,22 +436,23 @@ complementSpec.edges().forEach(function (e) {
 var old = deepCopy(Gprod);
 // eliminate all nongenerating symbols
 // eliminate all rules that are now useless
-var onlyGenerating = old;
-var dirty = true;
+
 
 var reachable = function(g) {
   var reached = {};
   var queue = ['S'];
+  var visited = new Set();
   while (queue.length != 0) {
     var cur = queue.shift();
     var rules = g[cur];
     if (rules) {
       reached[cur] = rules;
+      visited.add(cur);
       for (var i = 0; i < rules.length; i++) {
         var curRule = rules[i].split('#');
         for (var j = 0; j < curRule.length; j++) {
           if (curRule[j].indexOf('[') > -1 
-              && !reached[curRule[j]]) {
+              && !visited.has(curRule[j])) {
             queue.push(curRule[j])
           }
         }
@@ -460,53 +462,97 @@ var reachable = function(g) {
   return reached;
 }
 
-while (dirty) {
-  dirty = false;
-  old = deepCopy(onlyGenerating);
-  onlyGenerating = {};
-  Object.keys(old).forEach(function(k) {
-    var nongenerating = new Set();
-    var rules = old[k];
-    rules.forEach(function(rule) {
-      var pieces = rule.split('#');
-      pieces.forEach(function(piece) {
-        // if it's a terminal, return
-        if (piece.indexOf('[') < 0) {
-          return;
+// get rid of loops
+var deloop = function(g) {
+  var loopless = {};
+  var queue = ['S']
+  while (queue.length != 0) {
+    var cur = queue.shift();
+    var rules = g[cur]
+    if (rules) {
+      var newRules = rules.filter(function(rule) {
+        if (rule.indexOf('[') < 0) {
+          return true;
         }
-        if (!old[piece]) {
-          nongenerating.add(piece);
+        var pieces = rule.split('#');
+        for (var j = 0; j < pieces.length; j++) {
+          if (loopless[pieces[j]]) {
+            return false;
+          }
         }
+        return true;
       })
-    })
-    var newRules = rules.filter(function(rule) {
-      var ruleIsGenerating = true;
-      var pieces = rule.split('#');
-      pieces.forEach(function(piece) {
-        // if it's a terminal, return
-        if (piece.indexOf('[') < 0) {
-          return;
+      loopless[cur] = newRules;
+      for (var i = 0; i < newRules.length; i++) {
+        var s = newRules[i].split('#')
+        for (var j = 0; j < s.length; j++) {
+          if (s[j].indexOf('[') > -1) {
+            queue.push(s[j])
+          }
         }
-        if (nongenerating.has(piece)) {
-          ruleIsGenerating = false;
-          return;
-        }
+      }
+    }
+  }
+  return loopless;
+}
+
+// onlyGenerating = deloop(onlyGenerating)
+var pruneNonGenerating = function(g) {
+  var dirty = true;
+  while (dirty) {
+    dirty = false;
+    var old = deepCopy(g);
+    g = {};
+    Object.keys(old).forEach(function(k) {
+      var nongenerating = new Set();
+      var rules = old[k];
+      rules.forEach(function(rule) {
+        var pieces = rule.split('#');
+        pieces.forEach(function(piece) {
+          // if it's a terminal, return
+          if (piece.indexOf('[') < 0) {
+            return;
+          }
+          if (!old[piece]) {
+            nongenerating.add(piece);
+          }
+        })
       })
-      return ruleIsGenerating;
+      var newRules = rules.filter(function(rule) {
+        var ruleIsGenerating = true;
+        var pieces = rule.split('#');
+        pieces.forEach(function(piece) {
+          // if it's a terminal, return
+          if (piece.indexOf('[') < 0) {
+            return;
+          }
+          if (nongenerating.has(piece)) {
+            ruleIsGenerating = false;
+            return;
+          }
+        })
+        return ruleIsGenerating;
+      })
+      if (newRules.length > 0) {
+        g[k] = newRules;
+      }
+      if (rules.length > newRules.length) {
+        dirty = true;
+      }
     })
-    if (newRules.length > 0) {
-      onlyGenerating[k] = newRules;
-    }
-    if (rules.length > newRules.length) {
-      dirty = true;
-    }
-  })
+  }
+  return g;
 }
 
 
 
+var onlyGenerating = pruneNonGenerating(deepCopy(Gprod))
 var onlyReachable = reachable(onlyGenerating);
-console.log(onlyReachable)
+onlyReachable = deloop(onlyReachable);
+onlyReachable = reachable(onlyReachable);
+onlyReachable = pruneNonGenerating(onlyReachable)
+grammar2Dot(onlyReachable, 'reachable');
+
 // console.log('generating: ' + Object.keys(onlyGenerating).length);
 // console.log('reachable: ' + Object.keys(onlyReachable).length)
 // return;
@@ -543,7 +589,6 @@ if (!onlyReachable['S']) {
 
 
 // console.log(onlyGenerating)
-grammar2Dot(onlyReachable, 'reachable');
 var g = new GrammarGraph(replaceHashes(onlyReachable))
 // console.log(g.vertices())
 var guide = g.createGuide('S')
