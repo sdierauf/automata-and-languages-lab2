@@ -1,17 +1,26 @@
 digraph finite_state_machine {
 	rankdir=LR;
-	node [shape = doublecircle]; q3
+	node [shape = doublecircle]; q1
 	 node [shape = circle];
 	q0 -> q0 [ label = "eps"];
-	q0 -> q1 [ label = "even"];
+	q0 -> q0 [ label = "submit"];
+	q0 -> q0 [ label = "main"];
+	q0 -> q0 [ label = "init"];
+	q0 -> q0 [ label = "handle"];
+	q0 -> q1 [ label = "vote"];
 	q1 -> q1 [ label = "eps"];
-	q1 -> q3 [ label = "even"];
-	q3 -> q3 [ label = "even"];
-	q3 -> q3 [ label = "odd"];
-	q3 -> q3 [ label = "eps"];
-	q1 -> q2 [ label = "odd"];
-	q0 -> q2 [ label = "odd"];
-	q2 -> q3 [ label = "odd"];
+	q1 -> q1 [ label = "submit"];
+	q1 -> q1 [ label = "main"];
+	q1 -> q1 [ label = "vote"];
+	q1 -> q1 [ label = "init"];
+	q1 -> q1 [ label = "handle"];
+	q1 -> q1 [ label = "getVote"];
+	q0 -> q2 [ label = "getVote"];
 	q2 -> q2 [ label = "eps"];
-	q2 -> q1 [ label = "even"];
+	q2 -> q2 [ label = "submit"];
+	q2 -> q2 [ label = "main"];
+	q2 -> q2 [ label = "vote"];
+	q2 -> q2 [ label = "getVote"];
+	q2 -> q2 [ label = "init"];
+	q2 -> q2 [ label = "handle"];
 }

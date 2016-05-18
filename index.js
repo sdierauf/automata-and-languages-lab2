@@ -18,20 +18,21 @@ var copyGraph = function(g) {
 // get input
 // var cfgFile = prompt('cfg? ');
 cfgFile = 'lab2/Simple/simple.cfg';
-// cfgFile = 'recursive.cfg';
+cfgFile = 'recursive.cfg';
 // cfgFile = 'micro.cfg';
 cfgFile = 'lab2/EvenOdd/EvenOdd.cfg';
-// cfgFile = 'lab2/Vote/Vote_ne.cfg';
+cfgFile = 'lab2/Vote/Vote_ne.cfg';
 var cfgContent = fs.readFileSync(cfgFile, 'ascii');
 
 // var specFile = prompt('spec? ');
 specFile = 'lab2/Simple/simple.spec';
-// specFile = 'recursivepass.spec';
+specFile = 'recursivepass.spec';
+specFile = 'recursivefail.spec';
 // specFile = 'micropass.spec';
 // specFile = 'microfail.spec';
 // specFile = 'lab2/Simple/allallowed.spec';
 specFile = 'lab2/EvenOdd/EvenOdd1a.spec';
-// specFile = 'lab2/Vote/Vote_v.spec';
+specFile = 'lab2/Vote/Vote_gv.spec';
 var specContent = fs.readFileSync(specFile, 'ascii');
 
 var deepCopy = function (g) {
@@ -598,24 +599,10 @@ var entryNodeOneCall = function (g) {
 // if walking f ends up back at f with no other options
 // remove f
 
-var removeInfiniteLoops = function (g) {
-  // for some rule in g[f]
-  // if rule comes back to f && rule does not terminate
-  // remove rule
-  var pruned = {};
-  var isTerminating = function () {
-
-  }
-  Object.keys(g).forEach(function(key) {
-    
-  })
-}
-
 var pruneNonTerminating = function(g) {
   var terminating = {};
   Object.keys(g).forEach(function(k) {
     if (g[k].length == 1 && g[k][0].indexOf('[') < 0) {
-      console.log('added ' + k)
       terminating[k] = g[k];
     }
   })
@@ -641,19 +628,21 @@ var pruneNonTerminating = function(g) {
           } 
         }
         atLeastOneTerminating = atLeastOneTerminating || t;
-      }
-      if (!atLeastOneTerminating) {
-        console.log(n + ' is not terminating!');
-      }
+        if (atLeastOneTerminating) {
+          terminating[n] = rules;
+        } else {
 
+        }
+      }
       return atLeastOneTerminating;
     }
   }
-  Object.keys(g).forEach(function(k) {
-    if (g[k] && isTerminating(k, new Set())) {
-      terminating[k] = g[k];
-    }
-  })
+  isTerminating('S', new Set())
+  // Object.keys(g).forEach(function(k) {
+  //   if (g[k] && isTerminating(k, new Set())) {
+  //     terminating[k] = g[k];
+  //   }
+  // })
   return terminating;
 }
 
@@ -663,6 +652,8 @@ var onlyReachable = reachable(onlyGenerating);
 grammar2Dot(onlyReachable, 'reachable');
 
 onlyReachable = pruneNonTerminating(onlyReachable);
+onlyReachable = pruneNonGenerating(onlyReachable);
+onlyReachable = reachable(onlyReachable)
 // console.log('should be gone..')
 // onlyReachable = pruneNonGenerating(onlyReachable)
 console.log(onlyReachable)
